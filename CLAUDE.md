@@ -41,6 +41,8 @@ php artisan test --filter=test_unpublished_wrapped   # single test method
 
 Admin login after seeding: `admin@example.com` / `password`. Public demo: `/w/demo`.
 
+**Production**: deployed on a single VM (Oracle Cloud Always Free) keeping SQLite + local `storage/app/public` uploads (both persistent on disk — no Postgres/S3 needed). Full runbook in `DEPLOY.md`; prod env base in `.env.production.example`; web server config in `deploy/Caddyfile`; updates via `deploy/deploy.sh`.
+
 ## Architecture
 
 **Data model** (`app/Models/`): a `Wrapped` (couple names + `gifter_name`, `love_letter`, `relationship_started_on`, `theme`) `hasMany`: `WrappedTrack` (the player playlist — `title`, `artist`, `youtube_url`, `photo_path`, `position`), `WrappedSlide` (the ordered story content, typed `stat|music|place|milestone|message` with a flexible JSON `meta` column) and `WrappedPhoto` (retrospective gallery, files on the `public` disk). Key behaviors:
