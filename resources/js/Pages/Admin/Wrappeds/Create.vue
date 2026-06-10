@@ -13,14 +13,12 @@ const form = useForm({
     couple_name_1: '',
     couple_name_2: '',
     gifter_name: '',
-    song_title: '',
-    song_artist: '',
-    youtube_url: '',
     love_letter: '',
     relationship_started_on: '',
     theme: Object.keys(props.themes)[0],
     published: false,
     slides: [],
+    tracks: [],
 });
 
 function submit() {

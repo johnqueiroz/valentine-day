@@ -82,6 +82,16 @@ export function useYouTubePlayer() {
         else player.playVideo();
     }
 
+    // Troca a faixa em reprodução (mesmo player). Faz init se ainda não houver player.
+    function load(videoId, elementId = 'yt-player') {
+        if (!videoId) return;
+        if (player && player.loadVideoById) {
+            player.loadVideoById(videoId);
+        } else {
+            init(elementId, videoId, { autoplay: true });
+        }
+    }
+
     function seekToFraction(fraction) {
         if (player && duration.value) {
             player.seekTo(fraction * duration.value, true);
@@ -93,5 +103,5 @@ export function useYouTubePlayer() {
         if (player && player.destroy) player.destroy();
     });
 
-    return { isReady, isPlaying, currentTime, duration, init, toggle, seekToFraction };
+    return { isReady, isPlaying, currentTime, duration, init, load, toggle, seekToFraction };
 }

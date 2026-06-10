@@ -13,19 +13,27 @@ const props = defineProps({
 const screen = ref('gift'); // 'gift' | 'player'
 const showStories = ref(false);
 
-const hasAudio = computed(() => !!props.wrapped.youtube_id);
+const tracks = computed(() => props.wrapped.tracks ?? []);
+const trackIndex = ref(0);
+const hasAudio = computed(() => tracks.value.some((t) => t.youtube_id));
 
 const yt = useYouTubePlayer();
 const started = ref(false);
 
 function openPresent() {
-    // Toque do usuário: inicia o áudio (autoplay com som permitido) e vai ao player.
-    // Só inicializa uma vez — ao voltar e reabrir, a música continua de onde parou.
+    // Toque do usuário: inicia o áudio da faixa atual (autoplay com som permitido).
     if (hasAudio.value && !started.value) {
-        yt.init('yt-player', props.wrapped.youtube_id, { autoplay: true });
+        yt.load(tracks.value[trackIndex.value]?.youtube_id);
         started.value = true;
     }
     screen.value = 'player';
+}
+
+function changeTrack(i) {
+    if (!tracks.value.length) return;
+    trackIndex.value = (i + tracks.value.length) % tracks.value.length;
+    const vid = tracks.value[trackIndex.value]?.youtube_id;
+    if (vid && started.value) yt.load(vid);
 }
 </script>
 
@@ -52,12 +60,15 @@ function openPresent() {
                     v-else
                     key="player"
                     :wrapped="wrapped"
+                    :tracks="tracks"
+                    :track-index="trackIndex"
                     :is-playing="yt.isPlaying.value"
                     :current-time="yt.currentTime.value"
                     :duration="yt.duration.value"
                     :has-audio="hasAudio"
                     @toggle="yt.toggle"
                     @seek="yt.seekToFraction"
+                    @change-track="changeTrack"
                     @open-stories="showStories = true"
                     @back="screen = 'gift'"
                 />

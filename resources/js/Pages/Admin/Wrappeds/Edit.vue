@@ -20,11 +20,7 @@ const form = useForm({
     couple_name_1: props.wrapped.couple_name_1,
     couple_name_2: props.wrapped.couple_name_2,
     gifter_name: props.wrapped.gifter_name ?? '',
-    song_title: props.wrapped.song_title ?? '',
-    song_artist: props.wrapped.song_artist ?? '',
-    youtube_url: props.wrapped.youtube_url ?? '',
     love_letter: props.wrapped.love_letter ?? '',
-    cover_photo_path: props.wrapped.cover_photo_path ?? null,
     relationship_started_on: (props.wrapped.relationship_started_on ?? '').slice(0, 10),
     theme: props.wrapped.theme,
     published: !!props.wrapped.published_at,
@@ -33,6 +29,12 @@ const form = useForm({
         title: s.title,
         body: s.body ?? '',
         meta: s.meta ?? {},
+    })),
+    tracks: props.wrapped.tracks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        artist: t.artist ?? '',
+        youtube_url: t.youtube_url ?? '',
     })),
 });
 
@@ -56,9 +58,13 @@ function uploadPhotos(event) {
     });
 }
 
-function setCover(photo) {
-    form.cover_photo_path = photo.path;
-    form.put(route('admin.wrappeds.update', props.wrapped.id), { preserveScroll: true });
+function uploadTrackPhoto(track, event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    router.post(route('admin.wrappeds.tracks.photo', [props.wrapped.id, track.id]), { photo: file }, {
+        preserveScroll: true,
+        forceFormData: true,
+    });
 }
 
 function deletePhoto(photo) {
@@ -112,17 +118,48 @@ function copyLink() {
                     </div>
                 </form>
 
-                <!-- Fotos -->
+                <!-- Foto de cada faixa -->
+                <div v-if="wrapped.tracks.length" class="rounded-lg bg-white p-6 shadow-sm">
+                    <h3 class="mb-1 text-lg font-medium text-gray-900">Foto de cada faixa</h3>
+                    <p class="mb-4 text-sm text-gray-500">Aparece como capa no player ao tocar a faixa. (Salve as faixas antes.)</p>
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div
+                            v-for="track in wrapped.tracks"
+                            :key="track.id"
+                            class="flex items-center gap-4 rounded-lg border border-gray-200 p-3"
+                        >
+                            <img
+                                v-if="track.photo_url"
+                                :src="track.photo_url"
+                                class="h-16 w-16 shrink-0 rounded object-cover"
+                                :alt="track.title"
+                            />
+                            <div v-else class="flex h-16 w-16 shrink-0 items-center justify-center rounded bg-gray-100 text-2xl">🎵</div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate font-medium text-gray-800">{{ track.title }}</p>
+                                <p class="truncate text-sm text-gray-500">{{ track.artist }}</p>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    class="mt-1 block w-full text-xs text-gray-600 file:mr-2 file:rounded file:border-0 file:bg-indigo-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-indigo-700 hover:file:bg-indigo-100"
+                                    @change="(e) => uploadTrackPhoto(track, e)"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fotos da galeria (retrospectiva) -->
                 <div class="rounded-lg bg-white p-6 shadow-sm">
-                    <h3 class="mb-1 text-lg font-medium text-gray-900">Fotos</h3>
-                    <p class="mb-4 text-sm text-gray-500">Clique em “capa” para definir a foto que aparece no player.</p>
+                    <h3 class="mb-1 text-lg font-medium text-gray-900">Galeria (retrospectiva)</h3>
+                    <p class="mb-4 text-sm text-gray-500">Fotos exibidas nos stories da retrospectiva.</p>
 
                     <div class="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                         <div
                             v-for="photo in wrapped.photos"
                             :key="photo.id"
-                            class="group relative overflow-hidden rounded-lg ring-2 ring-transparent"
-                            :class="{ '!ring-green-500': form.cover_photo_path === photo.path }"
+                            class="group relative overflow-hidden rounded-lg"
                         >
                             <img :src="photo.url" class="h-32 w-full object-cover" :alt="photo.caption ?? ''" />
                             <button
@@ -130,14 +167,6 @@ function copyLink() {
                                 class="absolute right-1 top-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white opacity-0 transition group-hover:opacity-100"
                                 @click="deletePhoto(photo)"
                             >✕</button>
-                            <button
-                                type="button"
-                                class="absolute bottom-1 left-1 rounded-full px-2 py-0.5 text-xs font-medium transition"
-                                :class="form.cover_photo_path === photo.path
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-black/60 text-white opacity-0 group-hover:opacity-100'"
-                                @click="setCover(photo)"
-                            >{{ form.cover_photo_path === photo.path ? '★ capa' : 'capa' }}</button>
                         </div>
                     </div>
 

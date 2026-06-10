@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\TrackPhotoController;
 use App\Http\Controllers\Admin\WrappedController;
 use App\Http\Controllers\Admin\WrappedPhotoController;
 use App\Http\Controllers\ProfileController;
@@ -30,6 +31,8 @@ Route::middleware('auth')->group(function () {
             ->name('wrappeds.photos.store');
         Route::delete('wrappeds/{wrapped}/photos/{photo}', [WrappedPhotoController::class, 'destroy'])
             ->name('wrappeds.photos.destroy');
+        Route::post('wrappeds/{wrapped}/tracks/{track}/photo', [TrackPhotoController::class, 'store'])
+            ->name('wrappeds.tracks.photo');
     });
 });
 

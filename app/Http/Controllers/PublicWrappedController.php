@@ -6,7 +6,6 @@ use App\Models\Wrapped;
 use App\Support\DominantColor;
 use App\Support\MoonPhase;
 use App\Support\YouTube;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,16 +16,11 @@ class PublicWrappedController extends Controller
         // Wrapped não publicado não fica acessível pelo link.
         abort_unless($wrapped->isPublished(), 404);
 
-        $wrapped->load(['slides', 'photos']);
+        $wrapped->load(['slides', 'photos', 'tracks']);
 
         $daysTogether = $wrapped->relationship_started_on
             ? (int) $wrapped->relationship_started_on->diffInDays(now())
             : null;
-
-        // Capa do player: foto definida como capa ou a primeira foto enviada.
-        $coverPath = $wrapped->cover_photo_path ?? $wrapped->photos->first()?->path;
-        $coverUrl = $coverPath ? Storage::disk('public')->url($coverPath) : null;
-        $coverColor = DominantColor::of($coverPath);
 
         $moon = $wrapped->relationship_started_on
             ? MoonPhase::forDate($wrapped->relationship_started_on)
@@ -37,16 +31,19 @@ class PublicWrappedController extends Controller
                 'couple_name_1' => $wrapped->couple_name_1,
                 'couple_name_2' => $wrapped->couple_name_2,
                 'gifter_name' => $wrapped->gifter_name,
-                'song_title' => $wrapped->song_title,
-                'song_artist' => $wrapped->song_artist,
-                'youtube_id' => YouTube::idFrom($wrapped->youtube_url),
                 'love_letter' => $wrapped->love_letter,
-                'cover_url' => $coverUrl,
-                'cover_color' => $coverColor,
                 'relationship_started_on' => $wrapped->relationship_started_on?->toDateString(),
                 'days_together' => $daysTogether,
                 'moon' => $moon,
                 'theme' => $wrapped->theme,
+                'tracks' => $wrapped->tracks->map(fn ($t) => [
+                    'id' => $t->id,
+                    'title' => $t->title,
+                    'artist' => $t->artist,
+                    'youtube_id' => YouTube::idFrom($t->youtube_url),
+                    'photo_url' => $t->photo_url,
+                    'photo_color' => DominantColor::of($t->photo_path),
+                ]),
                 'slides' => $wrapped->slides->map(fn ($s) => [
                     'id' => $s->id,
                     'type' => $s->type,

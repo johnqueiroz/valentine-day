@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Wrapped;
+use App\Models\WrappedTrack;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,7 @@ class WrappedController extends Controller
     public function index(): Response
     {
         $wrappeds = Wrapped::query()
-            ->withCount(['slides', 'photos'])
+            ->withCount(['slides', 'photos', 'tracks'])
             ->latest()
             ->get();
 
@@ -42,15 +43,16 @@ class WrappedController extends Controller
         ]);
 
         $this->syncSlides($wrapped, $data['slides'] ?? []);
+        $this->syncTracks($wrapped, $data['tracks'] ?? []);
 
         return redirect()
             ->route('admin.wrappeds.edit', $wrapped)
-            ->with('success', 'Wrapped criado! Agora adicione as fotos.');
+            ->with('success', 'Wrapped criado! Agora adicione as fotos das faixas e a galeria.');
     }
 
     public function edit(Wrapped $wrapped): Response
     {
-        $wrapped->load(['slides', 'photos']);
+        $wrapped->load(['slides', 'photos', 'tracks']);
 
         return Inertia::render('Admin/Wrappeds/Edit', [
             'wrapped' => $wrapped,
@@ -70,6 +72,7 @@ class WrappedController extends Controller
         ]);
 
         $this->syncSlides($wrapped, $data['slides'] ?? []);
+        $this->syncTracks($wrapped, $data['tracks'] ?? []);
 
         return back()->with('success', 'Wrapped atualizado.');
     }
@@ -80,8 +83,10 @@ class WrappedController extends Controller
         foreach ($wrapped->photos as $photo) {
             Storage::disk('public')->delete($photo->path);
         }
-        if ($wrapped->cover_photo_path) {
-            Storage::disk('public')->delete($wrapped->cover_photo_path);
+        foreach ($wrapped->tracks as $track) {
+            if ($track->photo_path) {
+                Storage::disk('public')->delete($track->photo_path);
+            }
         }
 
         $wrapped->delete();
@@ -100,13 +105,9 @@ class WrappedController extends Controller
             'couple_name_1' => $data['couple_name_1'],
             'couple_name_2' => $data['couple_name_2'],
             'gifter_name' => $data['gifter_name'] ?? null,
-            'song_title' => $data['song_title'] ?? null,
-            'song_artist' => $data['song_artist'] ?? null,
-            'youtube_url' => $data['youtube_url'] ?? null,
             'love_letter' => $data['love_letter'] ?? null,
             'relationship_started_on' => $data['relationship_started_on'] ?? null,
             'theme' => $data['theme'],
-            'cover_photo_path' => $data['cover_photo_path'] ?? null,
         ];
     }
 
@@ -128,17 +129,51 @@ class WrappedController extends Controller
         }
     }
 
+    /**
+     * Upsert das faixas preservando ids e a foto (photo_path) das existentes.
+     * Faixas ausentes na submissão são apagadas (com o arquivo da foto).
+     */
+    protected function syncTracks(Wrapped $wrapped, array $tracks): void
+    {
+        $keptIds = [];
+
+        foreach (array_values($tracks) as $position => $track) {
+            $attributes = [
+                'title' => $track['title'],
+                'artist' => $track['artist'] ?? null,
+                'youtube_url' => $track['youtube_url'] ?? null,
+                'position' => $position,
+            ];
+
+            $model = ! empty($track['id'])
+                ? tap($wrapped->tracks()->whereKey($track['id'])->first())?->fill($attributes)
+                : null;
+
+            if ($model) {
+                $model->save();
+            } else {
+                $model = $wrapped->tracks()->create($attributes);
+            }
+
+            $keptIds[] = $model->id;
+        }
+
+        // Apaga faixas removidas no formulário, junto do arquivo da foto.
+        $wrapped->tracks()->whereKeyNot($keptIds)->get()->each(function (WrappedTrack $track) {
+            if ($track->photo_path) {
+                Storage::disk('public')->delete($track->photo_path);
+            }
+            $track->delete();
+        });
+    }
+
     protected function validateData(Request $request): array
     {
         return $request->validate([
             'couple_name_1' => ['required', 'string', 'max:100'],
             'couple_name_2' => ['required', 'string', 'max:100'],
             'gifter_name' => ['nullable', 'string', 'max:100'],
-            'song_title' => ['nullable', 'string', 'max:150'],
-            'song_artist' => ['nullable', 'string', 'max:150'],
-            'youtube_url' => ['nullable', 'url', 'max:255'],
             'love_letter' => ['nullable', 'string', 'max:2000'],
-            'cover_photo_path' => ['nullable', 'string', 'max:255'],
             'relationship_started_on' => ['nullable', 'date'],
             'theme' => ['required', 'string', 'in:'.implode(',', array_keys($this->themes()))],
             'published' => ['boolean'],
@@ -147,6 +182,11 @@ class WrappedController extends Controller
             'slides.*.title' => ['required', 'string', 'max:150'],
             'slides.*.body' => ['nullable', 'string', 'max:1000'],
             'slides.*.meta' => ['nullable', 'array'],
+            'tracks' => ['array'],
+            'tracks.*.id' => ['nullable', 'integer'],
+            'tracks.*.title' => ['required', 'string', 'max:150'],
+            'tracks.*.artist' => ['nullable', 'string', 'max:150'],
+            'tracks.*.youtube_url' => ['nullable', 'url', 'max:255'],
         ]);
     }
 
