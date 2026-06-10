@@ -5,43 +5,34 @@ import { coverGradient, themeOf } from '@/themes';
 
 const props = defineProps({
     wrapped: { type: Object, required: true },
+    tracks: { type: Array, default: () => [] },
+    trackIndex: { type: Number, default: 0 },
     isPlaying: { type: Boolean, default: false },
     currentTime: { type: Number, default: 0 },
     duration: { type: Number, default: 0 },
     hasAudio: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['toggle', 'seek', 'openStories', 'back']);
+const emit = defineEmits(['toggle', 'seek', 'openStories', 'back', 'changeTrack']);
 
 const accent = computed(() => themeOf(props.wrapped.theme).accent);
 
-// Galeria navegável: fotos enviadas (com cor dominante) ou a capa como item único.
-const gallery = computed(() => {
-    if (props.wrapped.photos?.length) return props.wrapped.photos;
-    if (props.wrapped.cover_url) return [{ url: props.wrapped.cover_url, color: props.wrapped.cover_color }];
-    return [];
-});
+// Faixa atual: dirige capa, título/artista e a cor de fundo.
+const coupleName = computed(() => `${props.wrapped.couple_name_1} & ${props.wrapped.couple_name_2}`);
+const currentTrack = computed(() => props.tracks[props.trackIndex] ?? null);
+const coverSrc = computed(() => currentTrack.value?.photo_url ?? null);
+const gradient = computed(() => coverGradient(currentTrack.value?.photo_color, props.wrapped.theme));
+const hasMultiple = computed(() => props.tracks.length > 1);
 
-// Começa na foto definida como capa, se houver.
-const coverIndex = gallery.value.findIndex((p) => p.url === props.wrapped.cover_url);
-const photoIndex = ref(coverIndex >= 0 ? coverIndex : 0);
+const title = computed(() => currentTrack.value?.title || coupleName.value);
+const artist = computed(() => currentTrack.value?.artist || coupleName.value);
 
-const currentPhoto = computed(() => gallery.value[photoIndex.value] ?? null);
-const coverSrc = computed(() => currentPhoto.value?.url ?? props.wrapped.cover_url);
-const gradient = computed(() => coverGradient(currentPhoto.value?.color ?? props.wrapped.cover_color, props.wrapped.theme));
-const hasGallery = computed(() => gallery.value.length > 1);
-
-function nextPhoto() {
-    if (!hasGallery.value) return;
-    photoIndex.value = (photoIndex.value + 1) % gallery.value.length;
+function nextTrack() {
+    if (hasMultiple.value) emit('changeTrack', props.trackIndex + 1);
 }
-function prevPhoto() {
-    if (!hasGallery.value) return;
-    photoIndex.value = (photoIndex.value - 1 + gallery.value.length) % gallery.value.length;
+function prevTrack() {
+    if (hasMultiple.value) emit('changeTrack', props.trackIndex - 1);
 }
-
-const title = computed(() => props.wrapped.song_title || `${props.wrapped.couple_name_1} & ${props.wrapped.couple_name_2}`);
-const artist = computed(() => props.wrapped.song_artist || `${props.wrapped.couple_name_1} & ${props.wrapped.couple_name_2}`);
 
 const progress = computed(() => (props.duration ? (props.currentTime / props.duration) * 100 : 0));
 
@@ -139,8 +130,8 @@ const liveCounter = computed(() => {
                     <button class="text-white/70">
                         <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
                     </button>
-                    <!-- Anterior -->
-                    <button class="text-white/90 disabled:opacity-30" :disabled="!hasGallery" aria-label="Foto anterior" @click="prevPhoto">
+                    <!-- Faixa anterior -->
+                    <button class="text-white/90 disabled:opacity-30" :disabled="!hasMultiple" aria-label="Faixa anterior" @click="prevTrack">
                         <svg viewBox="0 0 24 24" class="h-9 w-9 fill-current"><path d="M7 6v12H5V6zm2 6 10 6V6z"/></svg>
                     </button>
                     <!-- Play / Pause -->
@@ -152,8 +143,8 @@ const liveCounter = computed(() => {
                         <svg v-if="isPlaying" viewBox="0 0 24 24" class="h-7 w-7" :style="{ fill: accent }"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
                         <svg v-else viewBox="0 0 24 24" class="ml-0.5 h-7 w-7" :style="{ fill: accent }"><path d="M8 5v14l11-7z"/></svg>
                     </button>
-                    <!-- Próxima -->
-                    <button class="text-white/90 disabled:opacity-30" :disabled="!hasGallery" aria-label="Próxima foto" @click="nextPhoto">
+                    <!-- Próxima faixa -->
+                    <button class="text-white/90 disabled:opacity-30" :disabled="!hasMultiple" aria-label="Próxima faixa" @click="nextTrack">
                         <svg viewBox="0 0 24 24" class="h-9 w-9 fill-current"><path d="M17 6v12h2V6zM15 12 5 6v12z"/></svg>
                     </button>
                     <!-- Repeat -->

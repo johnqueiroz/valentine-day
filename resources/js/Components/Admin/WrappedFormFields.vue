@@ -29,6 +29,14 @@ const metaFields = {
     message: [],
 };
 
+function addTrack() {
+    props.form.tracks.push({ id: null, title: '', artist: '', youtube_url: '' });
+}
+
+function removeTrack(index) {
+    props.form.tracks.splice(index, 1);
+}
+
 function addSlide() {
     props.form.slides.push({ type: 'stat', title: '', body: '', meta: {} });
 }
@@ -88,20 +96,46 @@ function moveSlide(index, dir) {
             </div>
         </section>
 
-        <!-- Música (player) -->
-        <section class="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div class="md:col-span-2">
-                <InputLabel for="yt" value="Link da música no YouTube" />
-                <TextInput id="yt" v-model="form.youtube_url" class="mt-1 block w-full" placeholder="https://youtu.be/..." />
-                <InputError :message="form.errors.youtube_url" class="mt-1" />
+        <!-- Faixas (playlist do player) -->
+        <section>
+            <div class="mb-1 flex items-center justify-between">
+                <h3 class="text-lg font-medium text-gray-900">Faixas (músicas)</h3>
+                <SecondaryButton type="button" @click="addTrack">+ Adicionar faixa</SecondaryButton>
             </div>
-            <div>
-                <InputLabel for="song" value="Nome da música" />
-                <TextInput id="song" v-model="form.song_title" class="mt-1 block w-full" placeholder="Ex.: Still Loving You" />
-            </div>
-            <div>
-                <InputLabel for="artist" value="Artista" />
-                <TextInput id="artist" v-model="form.song_artist" class="mt-1 block w-full" placeholder="Ex.: Panda" />
+            <p class="mb-3 text-sm text-gray-500">
+                Cada faixa tem música, título e artista. A foto de cada faixa é enviada na edição,
+                depois de salvar.
+            </p>
+
+            <p v-if="!form.tracks.length" class="rounded-md bg-gray-50 p-4 text-sm text-gray-500">
+                Nenhuma faixa ainda. Adicione ao menos uma música.
+            </p>
+
+            <div
+                v-for="(track, index) in form.tracks"
+                :key="index"
+                class="mb-4 rounded-lg border border-gray-200 p-4"
+            >
+                <div class="mb-3 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-500">Faixa {{ index + 1 }}</span>
+                    <DangerButton type="button" @click="removeTrack(index)">Remover</DangerButton>
+                </div>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div class="md:col-span-2">
+                        <InputLabel value="Link da música no YouTube" />
+                        <TextInput v-model="track.youtube_url" class="mt-1 block w-full" placeholder="https://youtu.be/..." />
+                        <InputError :message="form.errors[`tracks.${index}.youtube_url`]" class="mt-1" />
+                    </div>
+                    <div>
+                        <InputLabel value="Nome da música" />
+                        <TextInput v-model="track.title" class="mt-1 block w-full" placeholder="Ex.: Still Loving You" />
+                        <InputError :message="form.errors[`tracks.${index}.title`]" class="mt-1" />
+                    </div>
+                    <div>
+                        <InputLabel value="Artista" />
+                        <TextInput v-model="track.artist" class="mt-1 block w-full" placeholder="Ex.: Panda" />
+                    </div>
+                </div>
             </div>
         </section>
 

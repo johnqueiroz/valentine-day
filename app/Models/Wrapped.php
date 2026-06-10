@@ -16,9 +16,6 @@ class Wrapped extends Model
         'couple_name_1',
         'couple_name_2',
         'gifter_name',
-        'song_title',
-        'song_artist',
-        'youtube_url',
         'love_letter',
         'relationship_started_on',
         'theme',
@@ -53,6 +50,11 @@ class Wrapped extends Model
     public function photos(): HasMany
     {
         return $this->hasMany(WrappedPhoto::class)->orderBy('position');
+    }
+
+    public function tracks(): HasMany
+    {
+        return $this->hasMany(WrappedTrack::class)->orderBy('position');
     }
 
     public function isPublished(): bool

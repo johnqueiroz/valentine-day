@@ -22,9 +22,6 @@ class WrappedDemoSeeder extends Seeder
             'couple_name_1' => 'Ana',
             'couple_name_2' => 'Beto',
             'gifter_name' => 'Leonardo',
-            'song_title' => 'Still Loving You',
-            'song_artist' => 'Panda',
-            'youtube_url' => 'https://www.youtube.com/watch?v=jdYJf_ybyVo',
             'love_letter' => "Desde o dia em que te conheci, tudo ficou mais colorido.\n\nObrigado por cada risada, cada viagem e cada abraço. Esse presente é um pedacinho da nossa história. Eu te amo. 💚",
             'relationship_started_on' => Carbon::create(2022, 2, 14),
             'theme' => 'green',
@@ -52,8 +49,25 @@ class WrappedDemoSeeder extends Seeder
             $wrapped->photos()->create(['path' => $path, 'position' => $i]);
         }
 
-        // Define a primeira foto como capa do player.
-        $wrapped->update(['cover_photo_path' => "wrappeds/{$wrapped->id}/demo-0.jpg"]);
+        // Playlist do player: cada faixa com sua música, info e foto (cores distintas
+        // para demonstrar a troca de cor de fundo ao mudar de faixa).
+        $tracks = [
+            ['title' => 'Still Loving You', 'artist' => 'Panda', 'youtube_url' => 'https://www.youtube.com/watch?v=jdYJf_ybyVo', 'hex' => '#1f6f4a'],
+            ['title' => 'Nosso Talismã', 'artist' => 'Anavitória', 'youtube_url' => 'https://www.youtube.com/watch?v=2Vv-BfVoq4g', 'hex' => '#6a3093'],
+            ['title' => 'Trevo (Tu)', 'artist' => 'Anavitória', 'youtube_url' => 'https://www.youtube.com/watch?v=k2qgadSvNyU', 'hex' => '#b3541e'],
+        ];
+        foreach ($tracks as $i => $t) {
+            $photoPath = "wrappeds/{$wrapped->id}/tracks/track-{$i}.jpg";
+            Storage::disk('public')->put($photoPath, $this->solidJpeg($t['hex']));
+
+            $wrapped->tracks()->create([
+                'title' => $t['title'],
+                'artist' => $t['artist'],
+                'youtube_url' => $t['youtube_url'],
+                'photo_path' => $photoPath,
+                'position' => $i,
+            ]);
+        }
 
         $this->command?->info("Wrapped de demonstração criado em /w/demo");
     }
