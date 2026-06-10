@@ -67,4 +67,5 @@ Admin login after seeding: `admin@example.com` / `password`. Public demo: `/w/de
 
 - UI copy and domain language are in **Portuguese (pt-BR)**.
 - Slide `type` and `theme` values are validated against whitelists in `WrappedController` (`slideTypes()` / `themes()`) — keep new values in sync across the controller, `themes.js`, and `WrappedStories.vue`'s `typeLabel` map.
+- `WrappedController::validateData()` is the source of truth for required fields (store + update): both couple names, `gifter_name`, `relationship_started_on`, `love_letter`, and **at least one track** (`tracks` min:1) with `title` + `artist` + `youtube_url` (valid url) each. pt-BR custom messages live in the same call; the form mirrors these with `required` attrs.
 - Image work uses raw **GD** (no Intervention Image): seeders generate placeholder JPEGs (`imagecreatetruecolor`/`imagejpeg`), and `App\Support\DominantColor` averages a cover to one pixel for the player's background tint.

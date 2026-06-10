@@ -59,12 +59,12 @@ function moveSlide(index, dir) {
         <section class="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
                 <InputLabel for="name1" value="Nome (pessoa 1)" />
-                <TextInput id="name1" v-model="form.couple_name_1" class="mt-1 block w-full" />
+                <TextInput id="name1" v-model="form.couple_name_1" required class="mt-1 block w-full" />
                 <InputError :message="form.errors.couple_name_1" class="mt-1" />
             </div>
             <div>
                 <InputLabel for="name2" value="Nome (pessoa 2)" />
-                <TextInput id="name2" v-model="form.couple_name_2" class="mt-1 block w-full" />
+                <TextInput id="name2" v-model="form.couple_name_2" required class="mt-1 block w-full" />
                 <InputError :message="form.errors.couple_name_2" class="mt-1" />
             </div>
             <div>
@@ -73,6 +73,7 @@ function moveSlide(index, dir) {
                     id="started"
                     v-model="form.relationship_started_on"
                     type="date"
+                    required
                     class="mt-1 block w-full"
                 />
                 <InputError :message="form.errors.relationship_started_on" class="mt-1" />
@@ -91,7 +92,7 @@ function moveSlide(index, dir) {
             </div>
             <div>
                 <InputLabel for="gifter" value="Quem está presenteando" />
-                <TextInput id="gifter" v-model="form.gifter_name" class="mt-1 block w-full" placeholder="Ex.: Leonardo" />
+                <TextInput id="gifter" v-model="form.gifter_name" required class="mt-1 block w-full" placeholder="Ex.: Leonardo" />
                 <InputError :message="form.errors.gifter_name" class="mt-1" />
             </div>
         </section>
@@ -123,17 +124,18 @@ function moveSlide(index, dir) {
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div class="md:col-span-2">
                         <InputLabel value="Link da música no YouTube" />
-                        <TextInput v-model="track.youtube_url" class="mt-1 block w-full" placeholder="https://youtu.be/..." />
+                        <TextInput v-model="track.youtube_url" required class="mt-1 block w-full" placeholder="https://youtu.be/..." />
                         <InputError :message="form.errors[`tracks.${index}.youtube_url`]" class="mt-1" />
                     </div>
                     <div>
                         <InputLabel value="Nome da música" />
-                        <TextInput v-model="track.title" class="mt-1 block w-full" placeholder="Ex.: Still Loving You" />
+                        <TextInput v-model="track.title" required class="mt-1 block w-full" placeholder="Ex.: Still Loving You" />
                         <InputError :message="form.errors[`tracks.${index}.title`]" class="mt-1" />
                     </div>
                     <div>
                         <InputLabel value="Artista" />
-                        <TextInput v-model="track.artist" class="mt-1 block w-full" placeholder="Ex.: Panda" />
+                        <TextInput v-model="track.artist" required class="mt-1 block w-full" placeholder="Ex.: Panda" />
+                        <InputError :message="form.errors[`tracks.${index}.artist`]" class="mt-1" />
                     </div>
                 </div>
             </div>
@@ -146,6 +148,7 @@ function moveSlide(index, dir) {
                 id="letter"
                 v-model="form.love_letter"
                 rows="4"
+                required
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 placeholder="Uma mensagem que aparece abaixo do player..."
             ></textarea>
