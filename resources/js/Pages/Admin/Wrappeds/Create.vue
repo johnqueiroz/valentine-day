@@ -18,7 +18,7 @@ const form = useForm({
     theme: Object.keys(props.themes)[0],
     published: false,
     slides: [],
-    tracks: [],
+    tracks: [{ id: null, title: '', artist: '', youtube_url: '' }],
 });
 
 function submit() {

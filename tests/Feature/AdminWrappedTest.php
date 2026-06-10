@@ -38,6 +38,8 @@ class AdminWrappedTest extends TestCase
             ->put(route('admin.wrappeds.update', $wrapped->id), [
                 'couple_name_1' => 'Ana Maria',
                 'couple_name_2' => 'Beto',
+                'gifter_name' => 'Leonardo',
+                'relationship_started_on' => '2022-02-14',
                 'love_letter' => 'Te amo!',
                 'theme' => 'blue',
                 'published' => true,
@@ -74,6 +76,48 @@ class AdminWrappedTest extends TestCase
             ->assertRedirect();
 
         $this->assertNotNull($track->fresh()->photo_path);
+    }
+
+    public function test_update_requires_core_fields(): void
+    {
+        $wrapped = $this->wrapped();
+
+        $this->actingAs(User::factory()->create())
+            ->from(route('admin.wrappeds.edit', $wrapped->id))
+            ->put(route('admin.wrappeds.update', $wrapped->id), [
+                'couple_name_1' => 'Ana',
+                'couple_name_2' => 'Beto',
+                'theme' => 'green',
+                // faltam: gifter_name, relationship_started_on, love_letter, tracks
+            ])
+            ->assertSessionHasErrors([
+                'gifter_name',
+                'relationship_started_on',
+                'love_letter',
+                'tracks',
+            ]);
+    }
+
+    public function test_track_fields_are_required(): void
+    {
+        $wrapped = $this->wrapped();
+
+        $this->actingAs(User::factory()->create())
+            ->from(route('admin.wrappeds.edit', $wrapped->id))
+            ->put(route('admin.wrappeds.update', $wrapped->id), [
+                'couple_name_1' => 'Ana',
+                'couple_name_2' => 'Beto',
+                'gifter_name' => 'Leo',
+                'relationship_started_on' => '2022-02-14',
+                'love_letter' => 'oi',
+                'theme' => 'green',
+                'tracks' => [['id' => null, 'title' => '', 'artist' => '', 'youtube_url' => 'naoeurl']],
+            ])
+            ->assertSessionHasErrors([
+                'tracks.0.title',
+                'tracks.0.artist',
+                'tracks.0.youtube_url',
+            ]);
     }
 
     public function test_guest_cannot_access_admin(): void
