@@ -57,6 +57,7 @@ class PublicWrappedController extends Controller
                 'photos' => $wrapped->photos->map(fn ($p) => [
                     'id' => $p->id,
                     'url' => $p->url,
+                    'color' => DominantColor::of($p->path),
                     'caption' => $p->caption,
                 ]),
             ],

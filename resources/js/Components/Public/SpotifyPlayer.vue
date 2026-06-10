@@ -14,7 +14,31 @@ const props = defineProps({
 const emit = defineEmits(['toggle', 'seek', 'openStories', 'back']);
 
 const accent = computed(() => themeOf(props.wrapped.theme).accent);
-const gradient = computed(() => coverGradient(props.wrapped.cover_color, props.wrapped.theme));
+
+// Galeria navegável: fotos enviadas (com cor dominante) ou a capa como item único.
+const gallery = computed(() => {
+    if (props.wrapped.photos?.length) return props.wrapped.photos;
+    if (props.wrapped.cover_url) return [{ url: props.wrapped.cover_url, color: props.wrapped.cover_color }];
+    return [];
+});
+
+// Começa na foto definida como capa, se houver.
+const coverIndex = gallery.value.findIndex((p) => p.url === props.wrapped.cover_url);
+const photoIndex = ref(coverIndex >= 0 ? coverIndex : 0);
+
+const currentPhoto = computed(() => gallery.value[photoIndex.value] ?? null);
+const coverSrc = computed(() => currentPhoto.value?.url ?? props.wrapped.cover_url);
+const gradient = computed(() => coverGradient(currentPhoto.value?.color ?? props.wrapped.cover_color, props.wrapped.theme));
+const hasGallery = computed(() => gallery.value.length > 1);
+
+function nextPhoto() {
+    if (!hasGallery.value) return;
+    photoIndex.value = (photoIndex.value + 1) % gallery.value.length;
+}
+function prevPhoto() {
+    if (!hasGallery.value) return;
+    photoIndex.value = (photoIndex.value - 1 + gallery.value.length) % gallery.value.length;
+}
 
 const title = computed(() => props.wrapped.song_title || `${props.wrapped.couple_name_1} & ${props.wrapped.couple_name_2}`);
 const artist = computed(() => props.wrapped.song_artist || `${props.wrapped.couple_name_1} & ${props.wrapped.couple_name_2}`);
@@ -57,7 +81,7 @@ const liveCounter = computed(() => {
 </script>
 
 <template>
-    <div class="flex h-full flex-col text-white" :style="{ background: gradient }">
+    <div class="flex h-full flex-col text-white transition-[background] duration-500" :style="{ background: gradient }">
         <div class="flex-1 overflow-y-auto">
             <!-- Header -->
             <div class="flex items-center justify-between px-5 pt-6">
@@ -74,9 +98,9 @@ const liveCounter = computed(() => {
                 <!-- Capa -->
                 <div class="mx-auto mt-6 aspect-square w-full max-w-sm overflow-hidden rounded-lg shadow-2xl">
                     <img
-                        v-if="wrapped.cover_url"
-                        :src="wrapped.cover_url"
-                        class="h-full w-full object-cover"
+                        v-if="coverSrc"
+                        :src="coverSrc"
+                        class="h-full w-full object-cover transition-opacity duration-300"
                         alt="capa"
                     />
                     <div v-else class="flex h-full w-full items-center justify-center bg-white/5 text-6xl">💞</div>
@@ -116,7 +140,7 @@ const liveCounter = computed(() => {
                         <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
                     </button>
                     <!-- Anterior -->
-                    <button class="text-white/90">
+                    <button class="text-white/90 disabled:opacity-30" :disabled="!hasGallery" aria-label="Foto anterior" @click="prevPhoto">
                         <svg viewBox="0 0 24 24" class="h-9 w-9 fill-current"><path d="M7 6v12H5V6zm2 6 10 6V6z"/></svg>
                     </button>
                     <!-- Play / Pause -->
@@ -129,7 +153,7 @@ const liveCounter = computed(() => {
                         <svg v-else viewBox="0 0 24 24" class="ml-0.5 h-7 w-7" :style="{ fill: accent }"><path d="M8 5v14l11-7z"/></svg>
                     </button>
                     <!-- Próxima -->
-                    <button class="text-white/90">
+                    <button class="text-white/90 disabled:opacity-30" :disabled="!hasGallery" aria-label="Próxima foto" @click="nextPhoto">
                         <svg viewBox="0 0 24 24" class="h-9 w-9 fill-current"><path d="M17 6v12h2V6zM15 12 5 6v12z"/></svg>
                     </button>
                     <!-- Repeat -->
