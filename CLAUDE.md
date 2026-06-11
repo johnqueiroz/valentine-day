@@ -29,6 +29,8 @@ to `resources/js/` (see `jsconfig.json` / `vite.config.js`).
 - **`resources/js/data.js`** — the only file to edit for content: couple names,
   `gifter_name`, `relationship_started_on` (`YYYY-MM-DD`), `theme`, `love_letter`,
   `couple_photo` (foto fixa do casal no card abaixo do player),
+  `star_map[{city, lat, lng, datetime}]` (céu real da noite de início, cena da retrospectiva),
+  `games[{question, answer, message}]` (mini-jogo Termo na retrospectiva; `answer` só A–Z),
   `tracks[{title, artist, audio, photo}]`, `photos[{src, caption}]`, `slides[]`,
   `highlights[{title, photos[]}]` (destaques estilo stories; capa = `photos[0]`).
   Images and MP3s are `import`ed at the top and referenced by `audio`/`photo`/`src` so
@@ -39,13 +41,23 @@ to `resources/js/` (see `jsconfig.json` / `vite.config.js`).
   and fills photo dominant colors. Owns the audio player (`useAudioPlayer.js`, an HTML5
   `Audio`) and `trackIndex`; ⏮/⏭ swap track (`player.load(src)`), cover, info, and
   background tint; `play()` runs inside the "Ver Presente" tap so the browser allows sound.
-- **`resources/js/lib/`** — pure JS helpers: `moon.js` (`moonForDate`, no API) and
+- **`resources/js/lib/`** — pure JS helpers: `moon.js` (`moonForDate`, no API),
   `dominantColor.js` (canvas 1×1 average — runtime, same-origin images, falls back to the
-  theme gradient if unavailable).
+  theme gradient if unavailable), `season.js` (`seasonForDate`, hemisfério sul), and
+  `astro.js` (low-precision astronomy: `julianDate`/`lstDeg`/`eqToHorizontal`/
+  `moonEquatorial`/`bvToColor`) + vendored star catalog `stars.6.json` (d3-celestial,
+  GeoJSON `[RA°,Dec°]`+mag+bv) used by the real-sky scene.
 - **`resources/js/Components/Public/{GiftIntro,SpotifyPlayer,SpotifyNav,StarMap}.vue`** and
   **`Components/{WrappedStories,HighlightStories}.vue`** — the UI. `WrappedStories` is the
-  "Ver retrospectiva" Wrapped flow; `HighlightStories` is the full-screen photo-story viewer
+  cinematic "Ver retrospectiva" Wrapped (auto-advancing scenes: intro+equalizer → days →
+  **real sky** via `Public/RealSky.vue` → season → for each `games[]`: gameIntro + a
+  Termo/Wordle round via `Public/WordleGame.vue` (auto-advance paused while playing;
+  confetti burst + "Próxima Seção" on finish) → outro; music keeps playing with a mute
+  toggle). `HighlightStories` is the full-screen photo-story viewer
   opened from the "Conheça {casal}" highlights card (App owns `activeHighlight`).
+  `Public/RealSky.vue` draws an all-sky dome canvas (real star positions + real moon
+  position for `star_map`'s date/lat/lng). `Public/StarMap.vue` is the older stylized
+  starfield (no longer wired).
   `themes.js` is the Spotify accent palette;
   `coverGradient(color, theme)` tints the player background from the current photo's
   dominant color, falling back to `playerGradient(theme)`.

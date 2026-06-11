@@ -6,6 +6,7 @@ import WrappedStories from '@/Components/WrappedStories.vue';
 import HighlightStories from '@/Components/HighlightStories.vue';
 import { useAudioPlayer } from '@/useAudioPlayer';
 import { moonForDate } from '@/lib/moon';
+import { seasonForDate } from '@/lib/season';
 import { dominantColor } from '@/lib/dominantColor';
 import { coverTopColor, BASE } from '@/themes';
 import data from '@/data.js';
@@ -30,6 +31,8 @@ const wrapped = computed(() => {
         theme: data.theme || 'green',
         days_together: days,
         moon: date ? moonForDate(date) : null,
+        season: date ? seasonForDate(date) : null,
+        star_map: data.star_map || null,
         slides: data.slides || [],
         tracks: (data.tracks || []).map((t, i) => ({
             id: i,
@@ -50,6 +53,12 @@ const wrapped = computed(() => {
             title: h.title,
             cover: h.photos?.[0] || null,
             photos: h.photos || [],
+        })),
+        games: (data.games || []).map((g, i) => ({
+            id: i,
+            question: g.question,
+            message: g.message || '',
+            answer: (g.answer || '').normalize('NFD').replace(/[^A-Za-z]/g, '').toUpperCase(),
         })),
     };
 });
@@ -136,7 +145,13 @@ watchEffect(() => {
                 />
             </transition>
 
-            <WrappedStories v-if="showStories" :wrapped="wrapped" @close="showStories = false" />
+            <WrappedStories
+                v-if="showStories"
+                :wrapped="wrapped"
+                :is-playing="player.isPlaying.value"
+                @toggle-audio="player.toggle"
+                @close="showStories = false"
+            />
 
             <HighlightStories
                 v-if="activeHighlight !== null"
