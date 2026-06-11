@@ -151,7 +151,7 @@ const scene = computed(() => stories.value[current.value]);
                             <div class="eq eq-bl"><span v-for="b in bars" :key="b" :style="{ animationDelay: b * 0.14 + 's', background: accent }"></span></div>
                             <div class="eq eq-br"><span v-for="b in bars" :key="b" :style="{ animationDelay: b * 0.08 + 's', background: accent }"></span></div>
                             <div class="relative">
-                                <h1 class="text-5xl font-black leading-tight drop-shadow">O Wrapped<br />de vocês</h1>
+                                <h1 class="text-5xl font-black leading-tight drop-shadow">O nosso Wrapped<br /></h1>
                                 <p class="mx-auto mt-6 max-w-xs text-lg font-semibold text-white/85">
                                     {{ couple.days }} dias de histórias, momentos e conexões
                                 </p>
