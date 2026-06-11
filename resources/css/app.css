@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Fundo escuro até as safe-areas do iOS (topo/rodapé não ficam brancos). */
+html,
+body {
+    background-color: #121212;
+}
+body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+}
