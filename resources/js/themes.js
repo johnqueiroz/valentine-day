@@ -35,3 +35,8 @@ export function coverGradient(hex, themeKey) {
     if (!hex) return playerGradient(themeKey);
     return `linear-gradient(180deg, ${darken(hex, 0.15)} 0%, ${darken(hex, 0.55)} 45%, ${BASE} 100%)`;
 }
+
+// Cor sólida do topo do gradiente — usada na status bar do iOS (theme-color).
+export function coverTopColor(hex, themeKey) {
+    return hex ? darken(hex, 0.15) : themeOf(themeKey).tint;
+}

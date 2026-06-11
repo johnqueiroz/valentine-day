@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watchEffect } from 'vue';
 import GiftIntro from '@/Components/Public/GiftIntro.vue';
 import SpotifyPlayer from '@/Components/Public/SpotifyPlayer.vue';
 import WrappedStories from '@/Components/WrappedStories.vue';
@@ -7,6 +7,7 @@ import HighlightStories from '@/Components/HighlightStories.vue';
 import { useAudioPlayer } from '@/useAudioPlayer';
 import { moonForDate } from '@/lib/moon';
 import { dominantColor } from '@/lib/dominantColor';
+import { coverTopColor, BASE } from '@/themes';
 import data from '@/data.js';
 
 // Cores dominantes (preenchidas em runtime a partir das imagens).
@@ -92,6 +93,16 @@ onMounted(() => {
         const hex = await dominantColor(src);
         if (hex) colors[src] = hex;
     });
+});
+
+// Status bar do iOS (theme-color) acompanha a cor da capa da faixa atual.
+const themeColor = computed(() =>
+    screen.value === 'player'
+        ? coverTopColor(tracks.value[trackIndex.value]?.photo_color, wrapped.value.theme)
+        : BASE
+);
+watchEffect(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor.value);
 });
 </script>
 
