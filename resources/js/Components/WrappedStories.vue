@@ -138,8 +138,8 @@ const scene = computed(() => stories.value[current.value]);
 
             <!-- Cena -->
             <div
-                class="relative z-10 flex flex-1 flex-col items-center justify-center overflow-hidden text-center text-white"
-                :class="scene.kind === 'game' || scene.kind === 'wheel' ? '' : 'px-8'"
+                class="relative z-10 flex flex-1 flex-col items-center justify-center text-center text-white"
+                :class="scene.kind === 'game' || scene.kind === 'wheel' ? 'overflow-y-auto' : 'overflow-hidden px-8'"
             >
                 <transition name="fade" mode="out-in">
                     <div :key="current" class="flex h-full w-full flex-col items-center justify-center">

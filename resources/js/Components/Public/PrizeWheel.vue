@@ -92,7 +92,7 @@ onMounted(draw);
 </script>
 
 <template>
-    <div class="flex h-full w-full flex-col items-center px-5 pt-16 text-white">
+    <div class="flex h-full w-full flex-col items-center overflow-y-auto px-5 pt-12 text-white">
         <h2 class="text-center text-3xl font-black leading-tight">{{ title }}</h2>
 
         <div class="relative mt-8 flex flex-1 flex-col items-center justify-center">
@@ -119,7 +119,7 @@ onMounted(draw);
         </div>
 
         <!-- Botão -->
-        <div class="w-full max-w-sm pb-6">
+        <div class="w-full max-w-sm pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <button
                 v-if="!result"
                 class="w-full rounded-xl bg-white py-4 text-lg font-bold text-black shadow-lg transition active:scale-[0.98] disabled:opacity-50"

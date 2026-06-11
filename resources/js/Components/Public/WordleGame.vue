@@ -153,7 +153,7 @@ function burstConfetti() {
 </script>
 
 <template>
-    <div class="flex h-full w-full flex-col items-center px-5 pt-16 text-white">
+    <div class="flex h-full w-full flex-col items-center overflow-y-auto px-5 pt-12 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white">
         <!-- Confete -->
         <div v-if="confetti.length" class="pointer-events-none fixed inset-0 z-40 flex items-center justify-center">
             <span
@@ -176,7 +176,7 @@ function burstConfetti() {
         <p class="mt-2 text-sm text-white/55">Descubra a palavra secreta ({{ LEN }} letras)</p>
 
         <!-- Grade (responsiva: cabe na largura mesmo com palavras longas) -->
-        <div class="mt-8 flex w-full flex-1 flex-col items-center justify-center">
+        <div class="mt-6 flex w-full flex-col items-center justify-center">
             <div
                 v-for="r in rowsRange"
                 :key="r"
@@ -220,12 +220,12 @@ function burstConfetti() {
         </div>
 
         <!-- Teclado -->
-        <div v-else class="w-full max-w-md pb-4">
+        <div v-else class="mt-6 w-full max-w-md">
             <div v-for="(row, ri) in KEYS" :key="ri" class="mb-1.5 flex justify-center gap-1.5">
                 <button
                     v-for="k in row"
                     :key="k"
-                    class="flex h-12 items-center justify-center rounded-md bg-white/15 font-bold uppercase active:bg-white/30"
+                    class="flex h-11 items-center justify-center rounded-md bg-white/15 font-bold uppercase active:bg-white/30"
                     :class="k === 'DEL' ? 'px-4 text-base' : 'flex-1 text-sm'"
                     :style="keyStatus[k] ? { backgroundColor: COLORS[keyStatus[k]] } : {}"
                     @click="pressKey(k)"
