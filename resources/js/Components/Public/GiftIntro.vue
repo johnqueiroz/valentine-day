@@ -27,7 +27,7 @@ const accent = computed(() => themeOf(props.theme).accent);
                     especial!
                 </h1>
                 <p class="mx-auto mt-6 max-w-xs text-lg text-white/60">
-                    Um momento único feito com carinho para celebrar a jornada de vocês
+                    Um momento único feito com carinho para celebrar a nossa jornada
                 </p>
 
                 <button
