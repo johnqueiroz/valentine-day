@@ -56,8 +56,9 @@ const yt = useYouTubePlayer();
 const started = ref(false);
 
 function openPresent() {
-    if (hasAudio.value && !started.value) {
-        yt.load(tracks.value[trackIndex.value]?.youtube_id);
+    // play() síncrono dentro do clique → autoplay com som permitido.
+    if (hasAudio.value) {
+        yt.play();
         started.value = true;
     }
     screen.value = 'player';
@@ -68,6 +69,11 @@ function changeTrack(i) {
     const vid = tracks.value[trackIndex.value]?.youtube_id;
     if (vid && started.value) yt.load(vid);
 }
+
+// Cria o player do YouTube já no mount, pronto para tocar no primeiro toque.
+onMounted(() => {
+    if (hasAudio.value) yt.prepare('yt-player', tracks.value[0]?.youtube_id);
+});
 
 // Extrai as cores das imagens ao montar (fundo do player + galeria).
 onMounted(() => {

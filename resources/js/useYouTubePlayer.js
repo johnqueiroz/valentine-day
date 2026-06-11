@@ -35,6 +35,7 @@ export function useYouTubePlayer() {
 
     let player = null;
     let poll = null;
+    let wantPlay = false; // usuário pediu play antes do player ficar pronto
 
     function startPolling() {
         stopPolling();
@@ -50,19 +51,24 @@ export function useYouTubePlayer() {
         poll = null;
     }
 
-    async function init(elementId, videoId, { autoplay = true } = {}) {
-        if (!videoId) return;
+    // Cria o player (sem autoplay) o quanto antes, para estar pronto no gesto do usuário.
+    async function prepare(elementId, videoId) {
+        if (!videoId || player) return;
         const YT = await loadYouTubeApi();
+        if (player) return; // outra chamada já criou
 
         player = new YT.Player(elementId, {
             videoId,
-            playerVars: { autoplay: autoplay ? 1 : 0, controls: 0, playsinline: 1, rel: 0 },
+            playerVars: { autoplay: 0, controls: 0, playsinline: 1, rel: 0 },
             events: {
                 onReady: (e) => {
                     isReady.value = true;
                     duration.value = e.target.getDuration() || 0;
-                    if (autoplay) e.target.playVideo();
                     startPolling();
+                    if (wantPlay) {
+                        wantPlay = false;
+                        e.target.playVideo();
+                    }
                 },
                 onStateChange: (e) => {
                     // 1 = tocando, 2 = pausado, 0 = terminou
@@ -76,19 +82,26 @@ export function useYouTubePlayer() {
         });
     }
 
+    // Inicia a reprodução — deve ser chamado DENTRO de um gesto do usuário.
+    function play() {
+        if (player && player.playVideo) player.playVideo();
+        else wantPlay = true; // toca assim que o player ficar pronto
+    }
+
     function toggle() {
         if (!player) return;
         if (isPlaying.value) player.pauseVideo();
         else player.playVideo();
     }
 
-    // Troca a faixa em reprodução (mesmo player). Faz init se ainda não houver player.
+    // Troca a faixa (mesmo player). loadVideoById já inicia a reprodução.
     function load(videoId, elementId = 'yt-player') {
         if (!videoId) return;
         if (player && player.loadVideoById) {
             player.loadVideoById(videoId);
         } else {
-            init(elementId, videoId, { autoplay: true });
+            wantPlay = true;
+            prepare(elementId, videoId);
         }
     }
 
@@ -103,5 +116,5 @@ export function useYouTubePlayer() {
         if (player && player.destroy) player.destroy();
     });
 
-    return { isReady, isPlaying, currentTime, duration, init, load, toggle, seekToFraction };
+    return { isReady, isPlaying, currentTime, duration, prepare, play, load, toggle, seekToFraction };
 }
