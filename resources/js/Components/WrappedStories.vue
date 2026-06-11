@@ -27,7 +27,7 @@ const stories = computed(() => {
     return list;
 });
 
-const DURATION = 5000;
+const DURATION = 8000;
 const current = ref(0);
 const progress = ref(0);
 const paused = ref(false);
