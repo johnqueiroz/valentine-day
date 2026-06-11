@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A personal, single-couple **"Spotify Wrapped"** static site (no backend). One couple's
 data and images are hardcoded; the page is a **faithful Spotify-app skin** (dark `#121212`,
-green `#1DB954`) with a 3-screen flow: gift intro → music player (YouTube) → animated
+green `#1DB954`) with a 3-screen flow: gift intro → music player (static MP3) → animated
 "stories" retrospective. Pure client-side **Vue 3 + Vite + Tailwind 3** — no PHP, no
 database, no admin. (A previous Laravel version lives in git history.)
 
@@ -28,17 +28,18 @@ to `resources/js/` (see `jsconfig.json` / `vite.config.js`).
 
 - **`resources/js/data.js`** — the only file to edit for content: couple names,
   `gifter_name`, `relationship_started_on` (`YYYY-MM-DD`), `theme`, `love_letter`,
-  `tracks[{title, artist, youtube_url, photo}]`, `photos[{src, caption}]`, `slides[]`.
-  Images are `import`ed at the top and referenced by `photo`/`src` so Vite bundles them.
+  `tracks[{title, artist, audio, photo}]`, `photos[{src, caption}]`, `slides[]`.
+  Images and MP3s are `import`ed at the top and referenced by `audio`/`photo`/`src` so
+  Vite bundles them.
 - **`resources/js/App.vue`** — orchestrator (3-screen state machine: `GiftIntro` →
   `SpotifyPlayer` → overlay `WrappedStories`). Builds the `wrapped` object the components
   expect **from `data.js` at runtime**: computes `days_together` and `moon` from the date,
-  extracts each track's `youtube_id`, and fills photo dominant colors. Owns the YouTube
-  player (`useYouTubePlayer.js` + hidden `#yt-player`) and `trackIndex`; ⏮/⏭ swap track
-  (`yt.load(videoId)`), cover, info, and background tint.
-- **`resources/js/lib/`** — pure JS helpers: `youtube.js` (`idFrom`), `moon.js`
-  (`moonForDate`, no API), `dominantColor.js` (canvas 1×1 average — runtime, same-origin
-  images, falls back to the theme gradient if unavailable).
+  and fills photo dominant colors. Owns the audio player (`useAudioPlayer.js`, an HTML5
+  `Audio`) and `trackIndex`; ⏮/⏭ swap track (`player.load(src)`), cover, info, and
+  background tint; `play()` runs inside the "Ver Presente" tap so the browser allows sound.
+- **`resources/js/lib/`** — pure JS helpers: `moon.js` (`moonForDate`, no API) and
+  `dominantColor.js` (canvas 1×1 average — runtime, same-origin images, falls back to the
+  theme gradient if unavailable).
 - **`resources/js/Components/Public/{GiftIntro,SpotifyPlayer,SpotifyNav,StarMap}.vue`** and
   **`Components/WrappedStories.vue`** — the UI. `themes.js` is the Spotify accent palette;
   `coverGradient(color, theme)` tints the player background from the current photo's
@@ -47,6 +48,6 @@ to `resources/js/` (see `jsconfig.json` / `vite.config.js`).
 ## Conventions
 
 - UI copy is in **Portuguese (pt-BR)**.
-- Player audio uses the **YouTube IFrame API** (client-side). A video only plays if its
-  owner allows embedding — unrelated to hosting; swap the link if one is blocked.
+- Player audio uses **static MP3 files** (HTML5 `Audio`) bundled by Vite from
+  `resources/js/assets/`. Playback starts inside a user tap (autoplay-with-sound rule).
 - Adding a `theme` requires updating `resources/js/themes.js` (accent palette).

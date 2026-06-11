@@ -1,11 +1,17 @@
 // Dados do seu Wrapped. Edite os campos do casal abaixo.
-// As imagens ficam em ./assets/ (capa de cada faixa, na ordem).
+// Imagens (capa de cada faixa) e MP3 ficam em ./assets/, na ordem.
 import track1 from './assets/track-1.jpeg';
 import track2 from './assets/track-2.jpeg';
 import track3 from './assets/track-3.jpeg';
 import track4 from './assets/track-4.jpeg';
 import track5 from './assets/track-5.jpeg';
 import track6 from './assets/track-6.jpeg';
+import audio1 from './assets/track-1.mp3';
+import audio2 from './assets/track-2.mp3';
+import audio3 from './assets/track-3.mp3';
+import audio4 from './assets/track-4.mp3';
+import audio5 from './assets/track-5.mp3';
+import audio6 from './assets/track-6.mp3';
 
 export default {
     // TODO: trocar pelos dados reais do casal.
@@ -19,12 +25,12 @@ export default {
 
     // Playlist do player — música + título + artista + foto de capa.
     tracks: [
-        { title: 'Lembrei de Nós', artist: 'João Gomes', youtube_url: 'https://www.youtube.com/watch?v=E90LDzNOjfE', photo: track1 },
-        { title: 'Still Loving You', artist: 'Scorpions', youtube_url: 'https://www.youtube.com/watch?v=7pOr3dBFAeY', photo: track2 },
-        { title: 'Um Amor Puro', artist: 'Djavan', youtube_url: 'https://www.youtube.com/watch?v=Af7ieNv0wXY', photo: track3 },
-        { title: 'João e Maria', artist: 'Chico Buarque', youtube_url: 'https://www.youtube.com/watch?v=Fxu-pE74m5A', photo: track4 },
-        { title: 'O Velho e a Flor', artist: 'Toquinho e Vinícius de Moraes', youtube_url: 'https://www.youtube.com/watch?v=qzg4ID1IMl0', photo: track5 },
-        { title: 'Wonderwall', artist: 'Oasis', youtube_url: 'https://www.youtube.com/watch?v=NbSzTi0d6pQ', photo: track6 },
+        { title: 'Lembrei de Nós', artist: 'João Gomes', audio: audio1, photo: track1 },
+        { title: 'Still Loving You', artist: 'Scorpions', audio: audio2, photo: track2 },
+        { title: 'Um Amor Puro', artist: 'Djavan', audio: audio3, photo: track3 },
+        { title: 'João e Maria', artist: 'Chico Buarque', audio: audio4, photo: track4 },
+        { title: 'O Velho e a Flor', artist: 'Toquinho e Vinícius de Moraes', audio: audio5, photo: track5 },
+        { title: 'Wonderwall', artist: 'Oasis', audio: audio6, photo: track6 },
     ],
 
     // Galeria da retrospectiva (stories) — reaproveita as 6 fotos.

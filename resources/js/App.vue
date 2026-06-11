@@ -3,8 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import GiftIntro from '@/Components/Public/GiftIntro.vue';
 import SpotifyPlayer from '@/Components/Public/SpotifyPlayer.vue';
 import WrappedStories from '@/Components/WrappedStories.vue';
-import { useYouTubePlayer } from '@/useYouTubePlayer';
-import { idFrom } from '@/lib/youtube';
+import { useAudioPlayer } from '@/useAudioPlayer';
 import { moonForDate } from '@/lib/moon';
 import { dominantColor } from '@/lib/dominantColor';
 import data from '@/data.js';
@@ -33,7 +32,7 @@ const wrapped = computed(() => {
             id: i,
             title: t.title,
             artist: t.artist,
-            youtube_id: idFrom(t.youtube_url),
+            audio: t.audio || null,
             photo_url: t.photo || null,
             photo_color: t.photo ? colors[t.photo] : null,
         })),
@@ -50,15 +49,15 @@ const tracks = computed(() => wrapped.value.tracks);
 const trackIndex = ref(0);
 const screen = ref('gift');
 const showStories = ref(false);
-const hasAudio = computed(() => tracks.value.some((t) => t.youtube_id));
+const hasAudio = computed(() => tracks.value.some((t) => t.audio));
 
-const yt = useYouTubePlayer();
+const player = useAudioPlayer({ onEnded: () => changeTrack(trackIndex.value + 1) });
 const started = ref(false);
 
 function openPresent() {
     // play() síncrono dentro do clique → autoplay com som permitido.
     if (hasAudio.value) {
-        yt.play();
+        player.play();
         started.value = true;
     }
     screen.value = 'player';
@@ -66,13 +65,13 @@ function openPresent() {
 function changeTrack(i) {
     if (!tracks.value.length) return;
     trackIndex.value = (i + tracks.value.length) % tracks.value.length;
-    const vid = tracks.value[trackIndex.value]?.youtube_id;
-    if (vid && started.value) yt.load(vid);
+    const src = tracks.value[trackIndex.value]?.audio;
+    if (src && started.value) player.load(src);
 }
 
-// Cria o player do YouTube já no mount, pronto para tocar no primeiro toque.
+// Carrega a primeira faixa no mount, pronta para tocar no primeiro toque.
 onMounted(() => {
-    if (hasAudio.value) yt.prepare('yt-player', tracks.value[0]?.youtube_id);
+    if (hasAudio.value) player.prepare(tracks.value[0]?.audio);
 });
 
 // Extrai as cores das imagens ao montar (fundo do player + galeria).
@@ -90,10 +89,6 @@ onMounted(() => {
 <template>
     <div class="flex min-h-screen justify-center bg-black">
         <div class="relative h-screen w-full max-w-md overflow-hidden bg-[#121212]">
-            <div class="pointer-events-none absolute h-px w-px opacity-0">
-                <div id="yt-player"></div>
-            </div>
-
             <transition name="screen" mode="out-in">
                 <GiftIntro
                     v-if="screen === 'gift'"
@@ -108,12 +103,12 @@ onMounted(() => {
                     :wrapped="wrapped"
                     :tracks="tracks"
                     :track-index="trackIndex"
-                    :is-playing="yt.isPlaying.value"
-                    :current-time="yt.currentTime.value"
-                    :duration="yt.duration.value"
+                    :is-playing="player.isPlaying.value"
+                    :current-time="player.currentTime.value"
+                    :duration="player.duration.value"
                     :has-audio="hasAudio"
-                    @toggle="yt.toggle"
-                    @seek="yt.seekToFraction"
+                    @toggle="player.toggle"
+                    @seek="player.seekToFraction"
                     @change-track="changeTrack"
                     @open-stories="showStories = true"
                     @back="screen = 'gift'"
