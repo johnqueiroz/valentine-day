@@ -3,14 +3,25 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 
 const props = defineProps({
     question: { type: String, default: '' },
-    answer: { type: String, required: true }, // A–Z maiúsculas
+    answers: { type: Array, required: true }, // lista de palavras A–Z; rotaciona por acerto
     message: { type: String, default: '' },
     accent: { type: String, default: '#1DB954' },
+    storageKey: { type: String, default: 'wrapped_word' },
 });
 
 const emit = defineEmits(['done']);
 
-const ANSWER = computed(() => props.answer.toUpperCase());
+// Índice persistente: cada acerto avança p/ a próxima palavra (volta à 1ª no fim).
+const wordIdx = ref(0);
+onMounted(() => {
+    const stored = Number(localStorage.getItem(props.storageKey) || 0);
+    wordIdx.value = Number.isFinite(stored) ? stored : 0;
+});
+
+const ANSWER = computed(() => {
+    const list = props.answers.length ? props.answers : ['SORRISO'];
+    return (list[wordIdx.value % list.length] || '').toUpperCase();
+});
 const LEN = computed(() => ANSWER.value.length);
 const MAX_ROWS = 6;
 
@@ -23,7 +34,7 @@ const keyStatus = reactive({}); // letra -> estado
 const KEYS = [
     ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
     ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
+    ['Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
 ];
 
 const COLORS = {
@@ -73,6 +84,9 @@ function submit() {
         won.value = true;
         finished.value = true;
         burstConfetti();
+        // Avança a palavra p/ a próxima execução (cicla).
+        const list = props.answers.length ? props.answers : ['SORRISO'];
+        localStorage.setItem(props.storageKey, String((wordIdx.value + 1) % list.length));
     } else if (guesses.value.length >= MAX_ROWS) {
         finished.value = true;
     }
@@ -161,17 +175,18 @@ function burstConfetti() {
         <h2 class="text-center text-3xl font-black leading-tight">{{ question }}</h2>
         <p class="mt-2 text-sm text-white/55">Descubra a palavra secreta ({{ LEN }} letras)</p>
 
-        <!-- Grade -->
-        <div class="mt-8 flex flex-1 flex-col justify-center">
+        <!-- Grade (responsiva: cabe na largura mesmo com palavras longas) -->
+        <div class="mt-8 flex w-full flex-1 flex-col items-center justify-center">
             <div
                 v-for="r in rowsRange"
                 :key="r"
-                class="mb-1.5 flex justify-center gap-1.5"
+                class="mb-1.5 grid w-full gap-1.5"
+                :style="{ gridTemplateColumns: `repeat(${LEN}, minmax(0, 1fr))`, maxWidth: LEN * 3.25 + 'rem' }"
             >
                 <div
                     v-for="c in colsRange"
                     :key="c"
-                    class="flex h-11 w-11 items-center justify-center rounded-md text-xl font-bold uppercase"
+                    class="flex aspect-square items-center justify-center rounded-md text-base font-bold uppercase sm:text-xl"
                     :style="{
                         backgroundColor: cell(r, c).color || 'transparent',
                         border: cell(r, c).color ? 'none' : '2px solid rgba(255,255,255,0.18)',
@@ -211,7 +226,7 @@ function burstConfetti() {
                     v-for="k in row"
                     :key="k"
                     class="flex h-12 items-center justify-center rounded-md bg-white/15 font-bold uppercase active:bg-white/30"
-                    :class="k === 'ENTER' || k === 'DEL' ? 'px-3 text-xs' : 'flex-1 text-sm'"
+                    :class="k === 'DEL' ? 'px-4 text-base' : 'flex-1 text-sm'"
                     :style="keyStatus[k] ? { backgroundColor: COLORS[keyStatus[k]] } : {}"
                     @click="pressKey(k)"
                 >
@@ -219,6 +234,16 @@ function burstConfetti() {
                     <span v-else>{{ k }}</span>
                 </button>
             </div>
+
+            <!-- ENTER destacado -->
+            <button
+                class="mt-3 w-full rounded-xl py-4 text-xl font-extrabold uppercase tracking-wide text-black shadow-lg transition active:scale-[0.98] disabled:opacity-40"
+                :style="{ backgroundColor: accent }"
+                :disabled="current.length !== LEN"
+                @click="submit"
+            >
+                Enter
+            </button>
         </div>
     </div>
 </template>

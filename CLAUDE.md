@@ -31,6 +31,7 @@ to `resources/js/` (see `jsconfig.json` / `vite.config.js`).
   `couple_photo` (foto fixa do casal no card abaixo do player),
   `star_map[{city, lat, lng, datetime}]` (céu real da noite de início, cena da retrospectiva),
   `games[{question, answer, message}]` (mini-jogo Termo na retrospectiva; `answer` só A–Z),
+  `wheels[{title, options[]}]` (roleta de prêmio na retrospectiva),
   `tracks[{title, artist, audio, photo}]`, `photos[{src, caption}]`, `slides[]`,
   `highlights[{title, photos[]}]` (destaques estilo stories; capa = `photos[0]`).
   Images and MP3s are `import`ed at the top and referenced by `audio`/`photo`/`src` so
@@ -52,8 +53,9 @@ to `resources/js/` (see `jsconfig.json` / `vite.config.js`).
   cinematic "Ver retrospectiva" Wrapped (auto-advancing scenes: intro+equalizer → days →
   **real sky** via `Public/RealSky.vue` → season → for each `games[]`: gameIntro + a
   Termo/Wordle round via `Public/WordleGame.vue` (auto-advance paused while playing;
-  confetti burst + "Próxima Seção" on finish) → outro; music keeps playing with a mute
-  toggle). `HighlightStories` is the full-screen photo-story viewer
+  confetti burst + "Próxima Seção" on finish) → for each `wheels[]`: wheelIntro + a prize
+  roulette via `Public/PrizeWheel.vue` (canvas wheel, spins to a random prize) → outro;
+  music keeps playing with a mute toggle). `HighlightStories` is the full-screen photo-story viewer
   opened from the "Conheça {casal}" highlights card (App owns `activeHighlight`).
   `Public/RealSky.vue` draws an all-sky dome canvas (real star positions + real moon
   position for `star_map`'s date/lat/lng). `Public/StarMap.vue` is the older stylized

@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import RealSky from '@/Components/Public/RealSky.vue';
 import WordleGame from '@/Components/Public/WordleGame.vue';
+import PrizeWheel from '@/Components/Public/PrizeWheel.vue';
 import { themeOf } from '@/themes';
 
 const props = defineProps({
@@ -30,6 +31,10 @@ const stories = computed(() => {
         list.push({ kind: 'gameIntro', game: g });
         list.push({ kind: 'game', game: g });
     });
+    (w.wheels || []).forEach((wh) => {
+        list.push({ kind: 'wheelIntro', wheel: wh });
+        list.push({ kind: 'wheel', wheel: wh });
+    });
     list.push({ kind: 'outro' });
     return list;
 });
@@ -42,7 +47,7 @@ let raf = null;
 let last = 0;
 
 function tick(now) {
-    if (!paused.value && scene.value.kind !== 'game') {
+    if (!paused.value && scene.value.kind !== 'game' && scene.value.kind !== 'wheel') {
         if (!last) last = now;
         progress.value += ((now - last) / DURATION) * 100;
         last = now;
@@ -125,8 +130,8 @@ const scene = computed(() => stories.value[current.value]);
                 <button class="text-2xl leading-none text-white/80 hover:text-white" aria-label="Fechar" @click.stop="close">×</button>
             </div>
 
-            <!-- Zonas de navegação (desativadas no jogo) -->
-            <div v-if="scene.kind !== 'game'" class="absolute inset-0 z-20 flex">
+            <!-- Zonas de navegação (desativadas em jogo/roleta) -->
+            <div v-if="scene.kind !== 'game' && scene.kind !== 'wheel'" class="absolute inset-0 z-20 flex">
                 <div class="h-full w-1/3" @click.stop="onClickZone('left')"></div>
                 <div class="h-full w-2/3" @click.stop="onClickZone('right')"></div>
             </div>
@@ -134,7 +139,7 @@ const scene = computed(() => stories.value[current.value]);
             <!-- Cena -->
             <div
                 class="relative z-10 flex flex-1 flex-col items-center justify-center overflow-hidden text-center text-white"
-                :class="scene.kind === 'game' ? '' : 'px-8'"
+                :class="scene.kind === 'game' || scene.kind === 'wheel' ? '' : 'px-8'"
             >
                 <transition name="fade" mode="out-in">
                     <div :key="current" class="flex h-full w-full flex-col items-center justify-center">
@@ -200,8 +205,30 @@ const scene = computed(() => stories.value[current.value]);
                                 <WordleGame
                                     :key="scene.game.id"
                                     :question="scene.game.question"
-                                    :answer="scene.game.answer"
+                                    :answers="scene.game.answers"
                                     :message="scene.game.message"
+                                    :accent="accent"
+                                    :storage-key="'wrapped_word_' + scene.game.id"
+                                    @done="next"
+                                />
+                            </div>
+                        </template>
+
+                        <!-- INTRO DA ROLETA -->
+                        <template v-else-if="scene.kind === 'wheelIntro'">
+                            <div class="eq eq-tl"><span v-for="b in bars" :key="b" :style="{ animationDelay: b * 0.12 + 's', background: accent }"></span></div>
+                            <div class="eq eq-br"><span v-for="b in bars" :key="b" :style="{ animationDelay: b * 0.08 + 's', background: accent }"></span></div>
+                            <p class="text-xl font-semibold text-white/80">Será que você está com</p>
+                            <p class="mt-1 text-6xl font-black" :style="{ color: accent }">Sorte Hoje?</p>
+                        </template>
+
+                        <!-- ROLETA -->
+                        <template v-else-if="scene.kind === 'wheel'">
+                            <div class="absolute inset-0">
+                                <PrizeWheel
+                                    :key="scene.wheel.id"
+                                    :title="scene.wheel.title"
+                                    :options="scene.wheel.options"
                                     :accent="accent"
                                     @done="next"
                                 />

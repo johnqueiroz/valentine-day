@@ -80,9 +80,32 @@ export default {
         { type: 'message', title: 'Pra você', body: 'Nossa trilha sonora, do nosso jeito. 💞', meta: {} },
     ],
 
-    // Mini-jogos (Termo/Wordle) na retrospectiva. answer só A–Z (sem acento), MAIÚSCULAS.
+    // Mini-jogos (Termo/Wordle) na retrospectiva. `answers` rotaciona a cada acerto
+    // (após a última, volta à primeira). Acentos são removidos automaticamente.
     games: [
-        { question: 'O que mais gosto em você', answer: 'SORRISO', message: 'Te amo, sua chata!' },
+        {
+            question: 'O que mais gosto em você',
+            message: 'Te amo, minha gata!',
+            answers: ['sorriso', 'olhos', 'bochecha', 'cabelo', 'persistência', 'inteligência'],
+        },
+    ],
+
+    // Roletas de prêmio na retrospectiva (após os jogos).
+    wheels: [
+        {
+            title: 'Seu presente será:',
+            options: [
+                'Jantar especial',
+                'Perfume',
+                'Foto + moldura',
+                'Garrafa Térmico',
+                'Bolsa',
+                'Sapato',
+                'Colar/pulseira',
+                'Vixe, vou ter que escolher',
+                'Eba! Escolha, John!!',
+            ],
+        },
     ],
 
     // Destaques (estilo "stories"): card "Conheça ...". Capa = photos[0].

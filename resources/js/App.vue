@@ -58,7 +58,14 @@ const wrapped = computed(() => {
             id: i,
             question: g.question,
             message: g.message || '',
-            answer: (g.answer || '').normalize('NFD').replace(/[^A-Za-z]/g, '').toUpperCase(),
+            answers: (g.answers || [g.answer] || [])
+                .filter(Boolean)
+                .map((a) => a.normalize('NFD').replace(/[^A-Za-z]/g, '').toUpperCase()),
+        })),
+        wheels: (data.wheels || []).map((w, i) => ({
+            id: i,
+            title: w.title,
+            options: w.options || [],
         })),
     };
 });
