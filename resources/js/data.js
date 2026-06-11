@@ -12,16 +12,20 @@ import audio3 from './assets/track-3.mp3';
 import audio4 from './assets/track-4.mp3';
 import audio5 from './assets/track-5.mp3';
 import audio6 from './assets/track-6.mp3';
+import couplePhoto from './assets/couple.jpeg';
 
 export default {
     // TODO: trocar pelos dados reais do casal.
-    couple_name_1: 'John Emerson',
-    couple_name_2: 'Nattália Reis',
+    couple_name_1: 'John',
+    couple_name_2: 'Nattália',
     gifter_name: 'John',
     relationship_started_on: '2025-02-22', // AAAA-MM-DD
+    couple_photo: couplePhoto, // foto fixa do casal (card abaixo do player)
     theme: 'green', // green | blue | purple | pink
     love_letter:
-        'Escreva aqui a cartinha do casal. Aparece abaixo do player. 💚',
+        'E pensar que, depois de tudo, a vida nos deu a chance de nos reencontrarmos, e que todo aquele amor continuava vivo dentro de nós. Olha só para nós agora: escrevendo nossa própria história, construindo sonhos juntos e vivendo um amor que só cresce a cada dia.\n\n' +
+        'Minha vida ao seu lado é muito mais bonita, cheia de carinho, companheirismo, aventuras e momentos que guardarei para sempre no coração. Fico imaginando tudo o que ainda nos espera: as viagens que faremos, as risadas que compartilharemos, os filmes que assistiremos abraçados, os hambúrgueres que vamos dividir e todas as memórias que ainda criaremos juntos.\n\n' +
+        'Só quero que você saiba o quanto sou feliz por ter você na minha vida e o quanto tenho orgulho de te chamar de meu amor. ❤️',
 
     // Playlist do player — música + título + artista + foto de capa.
     tracks: [
@@ -46,5 +50,13 @@ export default {
     // Slides extras da retrospectiva (opcional).
     slides: [
         { type: 'message', title: 'Pra você', body: 'Nossa trilha sonora, do nosso jeito. 💞', meta: {} },
+    ],
+
+    // Destaques (estilo "stories"): card "Conheça ...". Capa = photos[0].
+    // Troque/adicione as imagens depois (import no topo + referência aqui).
+    highlights: [
+        { title: 'Nossos Dates', photos: [track1, track4, track2] },
+        { title: 'Fotos aleatórias', photos: [track3, track5, couplePhoto] },
+        { title: 'Primeira viagem', photos: [track6, track5, track4] },
     ],
 };

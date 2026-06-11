@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import SpotifyNav from '@/Components/Public/SpotifyNav.vue';
 import { coverGradient, themeOf } from '@/themes';
 
@@ -13,7 +13,7 @@ const props = defineProps({
     hasAudio: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['toggle', 'seek', 'openStories', 'back', 'changeTrack']);
+const emit = defineEmits(['toggle', 'seek', 'openStories', 'back', 'changeTrack', 'openHighlight']);
 
 const accent = computed(() => themeOf(props.wrapped.theme).accent);
 
@@ -57,6 +57,16 @@ let timer = null;
 onMounted(() => { timer = setInterval(() => { now.value = new Date(); }, 1000); });
 onBeforeUnmount(() => timer && clearInterval(timer));
 
+// Mensagem especial: recolhe em 4 linhas com botão se transbordar.
+const showMessage = ref(false);
+const messageRef = ref(null);
+const isOverflowing = ref(false);
+onMounted(async () => {
+    await nextTick();
+    const el = messageRef.value;
+    if (el) isOverflowing.value = el.scrollHeight > el.clientHeight + 1;
+});
+
 const liveCounter = computed(() => {
     if (!props.wrapped.relationship_started_on) return null;
     const start = new Date(props.wrapped.relationship_started_on + 'T00:00:00');
@@ -69,6 +79,13 @@ const liveCounter = computed(() => {
     const days = Math.floor(diff / day);
     return { years, months, days };
 });
+
+const startYear = computed(() => {
+    if (!props.wrapped.relationship_started_on) return null;
+    return new Date(props.wrapped.relationship_started_on + 'T00:00:00').getFullYear();
+});
+
+const couplePhoto = computed(() => props.wrapped.couple_photo || coverSrc.value);
 </script>
 
 <template>
@@ -157,19 +174,75 @@ const liveCounter = computed(() => {
                     (Nenhuma música configurada)
                 </p>
 
-                <!-- Contador de tempo juntos -->
-                <div v-if="liveCounter" class="mt-8 rounded-2xl bg-white/[0.04] p-5 text-center">
-                    <p class="text-xs uppercase tracking-[0.2em] text-white/50">Juntos há</p>
-                    <p class="mt-2 text-3xl font-extrabold" :style="{ color: accent }">
-                        {{ liveCounter.years }}a {{ liveCounter.months }}m {{ liveCounter.days }}d
-                    </p>
-                    <p class="mt-1 text-sm text-white/50">e contando, em tempo real ⏱️</p>
+                <!-- Sobre o casal: foto + nome + desde + contador -->
+                <div class="mt-8 overflow-hidden rounded-2xl bg-white/[0.04]">
+                    <div class="relative aspect-[4/3] w-full overflow-hidden">
+                        <img
+                            v-if="couplePhoto"
+                            :src="couplePhoto"
+                            class="h-full w-full object-cover"
+                            alt="o casal"
+                        />
+                        <div v-else class="flex h-full w-full items-center justify-center text-6xl">💞</div>
+                        <div class="absolute inset-x-0 top-0 bg-gradient-to-b from-black/50 to-transparent p-4">
+                            <span class="text-lg font-bold drop-shadow">Sobre o casal</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h2 class="text-2xl font-extrabold">{{ coupleName }}</h2>
+                        <p v-if="startYear" class="mt-1 text-sm text-white/50">Juntos desde {{ startYear }}</p>
+
+                        <div v-if="liveCounter" class="mt-5 grid grid-cols-3 gap-3">
+                            <div class="rounded-xl bg-white/[0.05] py-4 text-center">
+                                <p class="text-2xl font-extrabold" :style="{ color: accent }">{{ liveCounter.years }}</p>
+                                <p class="mt-1 text-xs text-white/50">Anos</p>
+                            </div>
+                            <div class="rounded-xl bg-white/[0.05] py-4 text-center">
+                                <p class="text-2xl font-extrabold" :style="{ color: accent }">{{ liveCounter.months }}</p>
+                                <p class="mt-1 text-xs text-white/50">Meses</p>
+                            </div>
+                            <div class="rounded-xl bg-white/[0.05] py-4 text-center">
+                                <p class="text-2xl font-extrabold" :style="{ color: accent }">{{ liveCounter.days }}</p>
+                                <p class="mt-1 text-xs text-white/50">Dias</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Sobre o casal -->
+                <!-- Mensagem especial -->
                 <div v-if="wrapped.love_letter" class="mt-6 rounded-2xl bg-white/[0.04] p-5">
-                    <h2 class="mb-2 text-lg font-bold">Sobre o casal</h2>
-                    <p class="whitespace-pre-line leading-relaxed text-white/80">{{ wrapped.love_letter }}</p>
+                    <h2 class="mb-3 text-lg font-bold">Mensagem especial</h2>
+                    <p
+                        ref="messageRef"
+                        class="whitespace-pre-line text-lg font-bold leading-relaxed text-white/90"
+                        :class="{ 'line-clamp-4 [-webkit-mask-image:linear-gradient(to_bottom,black_55%,transparent)] [mask-image:linear-gradient(to_bottom,black_55%,transparent)]': !showMessage }"
+                    >{{ wrapped.love_letter }}</p>
+                    <button
+                        v-if="isOverflowing"
+                        class="mt-4 rounded-full bg-white px-5 py-2 text-sm font-bold text-black transition hover:scale-[1.02]"
+                        @click="showMessage = !showMessage"
+                    >
+                        {{ showMessage ? 'Ocultar' : 'Mostrar Mensagem' }}
+                    </button>
+                </div>
+
+                <!-- Conheça o casal: destaques -->
+                <div v-if="wrapped.highlights?.length" class="mt-6 rounded-2xl bg-white/[0.04] p-5">
+                    <h2 class="mb-4 text-xl font-extrabold">Conheça {{ wrapped.couple_name_1 }} e {{ wrapped.couple_name_2 }}</h2>
+                    <div class="flex gap-3 overflow-x-auto pb-1">
+                        <button
+                            v-for="(h, i) in wrapped.highlights"
+                            :key="h.id"
+                            class="relative aspect-[9/16] w-24 shrink-0 overflow-hidden rounded-xl transition active:scale-95"
+                            @click="emit('openHighlight', i)"
+                        >
+                            <img v-if="h.cover" :src="h.cover" class="h-full w-full object-cover" :alt="h.title" />
+                            <div v-else class="flex h-full w-full items-center justify-center bg-white/5 text-3xl">💞</div>
+                            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                                <span class="text-sm font-bold leading-tight drop-shadow">{{ h.title }}</span>
+                            </div>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- CTA retrospectiva -->

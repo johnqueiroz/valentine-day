@@ -28,7 +28,9 @@ to `resources/js/` (see `jsconfig.json` / `vite.config.js`).
 
 - **`resources/js/data.js`** — the only file to edit for content: couple names,
   `gifter_name`, `relationship_started_on` (`YYYY-MM-DD`), `theme`, `love_letter`,
-  `tracks[{title, artist, audio, photo}]`, `photos[{src, caption}]`, `slides[]`.
+  `couple_photo` (foto fixa do casal no card abaixo do player),
+  `tracks[{title, artist, audio, photo}]`, `photos[{src, caption}]`, `slides[]`,
+  `highlights[{title, photos[]}]` (destaques estilo stories; capa = `photos[0]`).
   Images and MP3s are `import`ed at the top and referenced by `audio`/`photo`/`src` so
   Vite bundles them.
 - **`resources/js/App.vue`** — orchestrator (3-screen state machine: `GiftIntro` →
@@ -41,7 +43,10 @@ to `resources/js/` (see `jsconfig.json` / `vite.config.js`).
   `dominantColor.js` (canvas 1×1 average — runtime, same-origin images, falls back to the
   theme gradient if unavailable).
 - **`resources/js/Components/Public/{GiftIntro,SpotifyPlayer,SpotifyNav,StarMap}.vue`** and
-  **`Components/WrappedStories.vue`** — the UI. `themes.js` is the Spotify accent palette;
+  **`Components/{WrappedStories,HighlightStories}.vue`** — the UI. `WrappedStories` is the
+  "Ver retrospectiva" Wrapped flow; `HighlightStories` is the full-screen photo-story viewer
+  opened from the "Conheça {casal}" highlights card (App owns `activeHighlight`).
+  `themes.js` is the Spotify accent palette;
   `coverGradient(color, theme)` tints the player background from the current photo's
   dominant color, falling back to `playerGradient(theme)`.
 

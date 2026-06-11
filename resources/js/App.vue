@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import GiftIntro from '@/Components/Public/GiftIntro.vue';
 import SpotifyPlayer from '@/Components/Public/SpotifyPlayer.vue';
 import WrappedStories from '@/Components/WrappedStories.vue';
+import HighlightStories from '@/Components/HighlightStories.vue';
 import { useAudioPlayer } from '@/useAudioPlayer';
 import { moonForDate } from '@/lib/moon';
 import { dominantColor } from '@/lib/dominantColor';
@@ -23,6 +24,7 @@ const wrapped = computed(() => {
         couple_name_2: data.couple_name_2,
         gifter_name: data.gifter_name,
         love_letter: data.love_letter,
+        couple_photo: data.couple_photo || null,
         relationship_started_on: date,
         theme: data.theme || 'green',
         days_together: days,
@@ -42,6 +44,12 @@ const wrapped = computed(() => {
             color: colors[p.src],
             caption: p.caption || null,
         })),
+        highlights: (data.highlights || []).map((h, i) => ({
+            id: i,
+            title: h.title,
+            cover: h.photos?.[0] || null,
+            photos: h.photos || [],
+        })),
     };
 });
 
@@ -49,6 +57,7 @@ const tracks = computed(() => wrapped.value.tracks);
 const trackIndex = ref(0);
 const screen = ref('gift');
 const showStories = ref(false);
+const activeHighlight = ref(null);
 const hasAudio = computed(() => tracks.value.some((t) => t.audio));
 
 const player = useAudioPlayer({ onEnded: () => changeTrack(trackIndex.value + 1) });
@@ -111,11 +120,19 @@ onMounted(() => {
                     @seek="player.seekToFraction"
                     @change-track="changeTrack"
                     @open-stories="showStories = true"
+                    @open-highlight="(i) => (activeHighlight = i)"
                     @back="screen = 'gift'"
                 />
             </transition>
 
             <WrappedStories v-if="showStories" :wrapped="wrapped" @close="showStories = false" />
+
+            <HighlightStories
+                v-if="activeHighlight !== null"
+                :highlight="wrapped.highlights[activeHighlight]"
+                :years-together="wrapped.days_together != null ? Math.floor(wrapped.days_together / 365.25) : null"
+                @close="activeHighlight = null"
+            />
         </div>
     </div>
 </template>
